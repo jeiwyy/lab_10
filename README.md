@@ -1,1 +1,1 @@
-![](pics/meme.png | 300)
+![](pics/meme.png)

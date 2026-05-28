@@ -1,7 +1,7 @@
 program Test;
 var a, b: integer;
 begin
-  a := 10;
-  b := 05;
+  a := абвгдеё;
+  b = 321.121;
   writeln(a)
 end.

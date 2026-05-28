@@ -6,62 +6,62 @@ namespace Compiler
 {
     struct TextPosition
     {
-        public uint lineNumber;
-        public byte charNumber;
+        public uint LineNumber { get; set; }
+        public byte CharNumber { get; set; }
 
-        public TextPosition(uint ln = 0, byte c = 0)
+        public TextPosition(uint lineNumber = 0, byte charNumber = 0)
         {
-            lineNumber = ln;
-            charNumber = c;
+            LineNumber = lineNumber;
+            CharNumber = charNumber;
         }
     }
 
     struct Err
     {
-        public TextPosition errorPosition;
-        public byte errorCode;
+        public TextPosition ErrorPosition { get; set; }
+        public byte ErrorCode { get; set; }
 
         public Err(TextPosition errorPosition, byte errorCode)
         {
-            this.errorPosition = errorPosition;
-            this.errorCode = errorCode;
+            ErrorPosition = errorPosition;
+            ErrorCode = errorCode;
         }
     }
 
     class InputOutput
     {
-        private const byte ERRMAX = 9;
+        private const byte ErrMax = 9;
 
         public static char Ch { get; set; }
-        public static TextPosition positionNow = new TextPosition(0, 0);
-        public static List<Err> err = new List<Err>();
-        public static bool IsEndOfFile { get; private set; } = false;
+        public static TextPosition PositionNow { get; set; }
+        public static List<Err> Errors { get; private set; } 
+        public static bool IsEndOfFile { get; private set; }
 
-        private static string line = "";
-        private static int lastInLine = 0;
-        private static StreamReader File { get; set; }
-        private static uint errCount = 0;
+        private static string _line;
+        private static int _lastInLine;
+        private static StreamReader _file;
+        private static uint _errCount;
 
         public static void Init(string filePath)
         {
-            if (!System.IO.File.Exists(filePath))
+            if (!File.Exists(filePath))
             {
                 Console.WriteLine($"Ошибка: Файл {filePath} не найден.");
                 return;
             }
 
-            File = new StreamReader(filePath);
-            errCount = 0;
+            _file = new StreamReader(filePath);
+            _errCount = 0;
             IsEndOfFile = false;
-            positionNow = new TextPosition(1, 0);
-            err = new List<Err>();
+            PositionNow = new TextPosition(1, 0);
+            Errors = new List<Err>();
 
-            if (!File.EndOfStream)
+            if (!_file.EndOfStream)
             {
-                line = File.ReadLine();
-                line += " ";
-                lastInLine = line.Length - 1;
-                Ch = line[0];
+                _line = _file.ReadLine();
+                _line += " ";
+                _lastInLine = _line.Length - 1;
+                Ch = _line[0];
             }
             else
             {
@@ -78,10 +78,10 @@ namespace Compiler
                 return;
             }
 
-            if (positionNow.charNumber >= lastInLine)
+            if (PositionNow.CharNumber >= _lastInLine)
             {
                 ListThisLine();
-                if (err.Count > 0)
+                if (Errors.Count > 0)
                 {
                     ListErrors();
                 }
@@ -90,64 +90,70 @@ namespace Compiler
 
                 if (!IsEndOfFile)
                 {
-                    positionNow.lineNumber++;
-                    positionNow.charNumber = 0;
-                    Ch = line[0];
+                    var curPosition = PositionNow;
+                    curPosition.LineNumber++;
+                    curPosition.CharNumber = 0;
+                    PositionNow = curPosition;
+                    
+                    Ch = _line[0];
                 }
             }
             else
             {
-                positionNow.charNumber++;
-                Ch = line[positionNow.charNumber];
+                var curPosition = PositionNow;
+                curPosition.CharNumber++;
+                PositionNow = curPosition;
+                
+                Ch = _line[PositionNow.CharNumber];
             }
         }
 
         public static void Error(byte errorCode, TextPosition position)
         {
-            if (err.Count <= ERRMAX)
+            if (Errors.Count <= ErrMax)
             {
-                Err e = new Err(position, errorCode);
-                err.Add(e);
+                var e = new Err(position, errorCode);
+                Errors.Add(e);
             }
         }
 
         private static string ErrorDescr(byte errorCode)
         {
-            string err = "";
+            string description = "";
             switch (errorCode)
             {
                 case 4:
-                    err += "4 - отстутствие ';'";
+                    description += "4 - отсутствие ';'";
                     break;
                 case 10:
-                    err += "10 - переменной типа int не может быть присвоено string";
+                    description += "10 - супер ошибка";
                     break;
                 default: 
-                    err += "Неизвестная ошибка.";
+                    description += "Неизвестная ошибка.";
                     break;
             }
-            return err;
+            return description;
         }
 
         private static void ListThisLine()
         {
-            Console.WriteLine($"{positionNow.lineNumber.ToString().PadLeft(4)} | {line.TrimEnd()}");
+            Console.WriteLine($"{PositionNow.LineNumber.ToString().PadLeft(4)} | {_line.TrimEnd()}");
         }
 
         private static void ReadNextLine()
         {
-            if (!File.EndOfStream)
+            if (!_file.EndOfStream)
             {
-                line = File.ReadLine();
-                line += " ";
-                lastInLine = line.Length - 1;
-                err = new List<Err>();
+                _line = _file.ReadLine();
+                _line += " ";
+                _lastInLine = _line.Length - 1;
+                Errors = new List<Err>();
             }
             else
             {
                 IsEndOfFile = true;
                 Ch = '\0';
-                File.Close();
+                _file.Close();
                 End();
             }
         }
@@ -155,24 +161,24 @@ namespace Compiler
         private static void End()
         {
             Console.WriteLine("=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=");
-            Console.WriteLine($"Компиляция завершена. Всего ошибок обнаружено: {errCount}!");
+            Console.WriteLine($"Компиляция завершена. Всего ошибок обнаружено: {_errCount}!");
             Console.WriteLine("=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=");
         }
 
         private static void ListErrors()
         {
-            foreach (Err item in err)
+            foreach (var item in Errors)
             {
-                ++errCount;
+                ++_errCount;
                 string s = "  !";
-                if (errCount < 10)
+                if (_errCount < 10)
                 {
                     s += "0";
                 }
-                s += $"{errCount}!";
+                s += $"{_errCount}!";
 
-                int totalIndent = 6 + item.errorPosition.charNumber;
-                s = s.PadRight(totalIndent) + $"^ ошибка {ErrorDescr(item.errorCode)}";
+                int totalIndent = 6 + item.ErrorPosition.CharNumber;
+                s = s.PadRight(totalIndent) + $"^ ошибка {ErrorDescr(item.ErrorCode)}";
                 Console.WriteLine(s);
             }
         }

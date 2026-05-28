@@ -1,5 +1,4 @@
 ﻿﻿using System;
-using System.IO;
 
 namespace Compiler
 {
@@ -7,24 +6,24 @@ namespace Compiler
     {
         static void Main()
         {
-            string Filename = "test.pas";
+            string filename = "test.pas";
             Console.WriteLine("Тестирование модуля ввода-вывода");
-            Console.WriteLine($"Загрузка файла: {Filename}\n");
+            Console.WriteLine($"Загрузка файла: {filename}\n");
 
-            InputOutput.Init(Filename);
+            InputOutput.Init(filename);
 
             while (!InputOutput.IsEndOfFile)
             {
-                if (InputOutput.positionNow.lineNumber == 1
-                && InputOutput.positionNow.charNumber == 2)
+                if (InputOutput.PositionNow.LineNumber == 1 &&
+                    InputOutput.PositionNow.CharNumber == 2)
                 {
-                    InputOutput.Error(10, InputOutput.positionNow);
+                    InputOutput.Error(10, InputOutput.PositionNow);
                 }
 
-                if (InputOutput.positionNow.lineNumber == 6
-                && InputOutput.positionNow.charNumber == 7)
+                if (InputOutput.PositionNow.LineNumber == 6 &&
+                    InputOutput.PositionNow.CharNumber == 7)
                 {
-                    InputOutput.Error(4, InputOutput.positionNow);
+                    InputOutput.Error(4, InputOutput.PositionNow);
                 }
 
                 InputOutput.NextCh();
